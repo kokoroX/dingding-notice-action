@@ -27,21 +27,21 @@ runs:
         NOTICE_COLOR: ${{ inputs.notice-color }}
         WEBHOOK_URL: ${{ inputs.webhook-url }}
         COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-        NOTICE_MARKDOWN: ${{ inputs.notice-markdown }}
+        NOTICE_MARKDOWN: ${{ toJSON(inputs.notice-markdown) }}
       run: |
           NOTICE_TITLE="${{ inputs.notice-title }}"
           DATE_TIME=$(date +'%Y-%m-%d %H:%M:%S')
-          USE_NOTICE_MARKDOWN=$NOTICE_MARKDOWN
+          USE_NOTICE_MARKDOWN=`sed -e 's/^"//' -e 's/"$//' <<< $NOTICE_MARKDOWN`
 
           cat <<EOF > post-data.json
-          {"msgtype":"markdown","markdown":{"title":"${NOTICE_TITLE}","text":"## <font color=${NOTICE_COLOR}>${NOTICE_TITLE}</font>\n-----\n ${NOTICE_MARKDOWN} \n-------\n##### ${COMMIT_MESSAGE} \n-------\n \n###### $DATE_TIME \n"}}
+          {"msgtype":"markdown","markdown":{"title":"${NOTICE_TITLE}","text":"## <font color=${NOTICE_COLOR}>${NOTICE_TITLE}</font>\n-----\n ${USE_NOTICE_MARKDOWN} \n-------\n##### ${COMMIT_MESSAGE} \n-------\n \n###### $DATE_TIME \n"}}
           EOF
           cat post-data.json
 
           curl -X POST "${WEBHOOK_URL}" \
           --header 'Content-Type: application/json' \
           --data-raw "$(cat <<EOF
-          {"msgtype":"markdown","markdown":{"title":"${NOTICE_TITLE}","text":"## <font color=${NOTICE_COLOR}>${NOTICE_TITLE}</font>\n-----\n ${NOTICE_MARKDOWN} \n-------\n##### ${COMMIT_MESSAGE} \n-------\n \n###### $DATE_TIME \n"}}
+          {"msgtype":"markdown","markdown":{"title":"${NOTICE_TITLE}","text":"## <font color=${NOTICE_COLOR}>${NOTICE_TITLE}</font>\n-----\n ${USE_NOTICE_MARKDOWN} \n-------\n##### ${COMMIT_MESSAGE} \n-------\n \n###### $DATE_TIME \n"}}
           EOF
           )"
       shell: bash
