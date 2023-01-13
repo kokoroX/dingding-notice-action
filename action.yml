@@ -33,14 +33,10 @@ runs:
       run: |
           NOTICE_TITLE="${{ inputs.notice-title }}"
           DATE_TIME=$(date +'%Y-%m-%d %H:%M:%S')
-          cat <<EOF > post-data.json
-          {"msgtype":"markdown","markdown":{"title":"${NOTICE_TITLE}","text":"## <font color=${NOTICE_COLOR}>${NOTICE_TITLE}</font>\\n-----${NOTICE_MARKDOWN}-------\\n##### ${COMMIT_MESSAGE} \\n###### $DATE_TIME \\n"}}
-          EOF
-          cat post-data.json
           curl -X POST "${FEISHU_WEBHOOK}" \
           --header 'Content-Type: application/json' \
           --data-raw "$(cat <<EOF
-          {"msgtype":"markdown","markdown":{"title":"${NOTICE_TITLE}","text":"## <font color=${NOTICE_COLOR}>${NOTICE_TITLE}</font>\\n-----${NOTICE_MARKDOWN}-------\\n##### ${COMMIT_MESSAGE} \\n###### $DATE_TIME \\n"}}
+          {"msgtype":"markdown","markdown":{"title":"${NOTICE_TITLE}","text":"## <font color=${NOTICE_COLOR}>${NOTICE_TITLE}</font>\n----- ${NOTICE_MARKDOWN} \n-------\n##### ${COMMIT_MESSAGE} \n###### $DATE_TIME \n"}}
           EOF
           )"
       shell: bash
