@@ -1,0 +1,42 @@
+name: 'Send dingding notice'
+description: '发送钉钉服务发布消息'
+inputs:
+  notice-title:
+    description: 消息卡片标题
+    required: true
+  notice-color:
+    description: 消息卡片颜色
+    required: true
+  button-text:
+    description: 按钮文本
+    required: true
+  button-link:
+    description: 按钮链接
+    required: true
+  webhook-url:
+    description: 飞书消息通知 webhook url
+    required: true
+  notice-markdown:
+    description: 消息 markdown 内容
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - id: send-notice
+      env:
+        NOTICE_COLOR: ${{ inputs.notice-color }}
+        BUTTON_TEXT: ${{ inputs.button-text }}
+        BUTTON_LINK: ${{ inputs.button-link }}
+        FEISHU_WEBHOOK: ${{ inputs.webhook-url }}
+        COMMIT_MESSAGE: ${{ toJSON(github.event.head_commit.message) }}
+        NOTICE_MARKDOWN: ${{ toJSON(inputs.notice-markdown) }}
+      run: |
+          NOTICE_TITLE="${{ inputs.notice-title }}"
+          DATE_TIME=$(date +'%Y-%m-%d %H:%M:%S')
+          curl -X POST "${FEISHU_WEBHOOK}" \
+          --header 'Content-Type: application/json' \
+          --data-raw "$(cat <<EOF
+          {"msgtype":"markdown","markdown":{"title":"${NOTICE_TITLE}","text":"## <font color=${NOTICE_COLOR}>${NOTICE_TITLE}</font>\\n-----${NOTICE_MARKDOWN}-------\\n##### ${COMMIT_MESSAGE} \\n###### $DATE_TIME \\n"}}
+          EOF
+          )"
+      shell: bash
